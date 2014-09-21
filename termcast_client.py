@@ -1,6 +1,8 @@
 import argparse
+import json
 import os
 import pty
+import shutil
 import socket
 import sys
 
@@ -24,8 +26,14 @@ class Client(object):
 
     def _build_connection_string(self):
         auth = "hello %s %s\n" % (self.username, self.password)
-        metadata = '\033]499;{"geometry":[80,24]}\007' # XXX
+        size = shutil.get_terminal_size()
+        metadata = self._build_metadata_string({
+            "geometry": [ size.columns, size.lines ],
+        })
         return auth + metadata
+
+    def _build_metadata_string(self, data):
+        return '\033]499;%s\007' % json.dumps(data)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

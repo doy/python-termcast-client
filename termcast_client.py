@@ -16,7 +16,7 @@ class Client(object):
     def run(self, argv):
         sock = socket.socket()
         sock.connect((self.host, self.port))
-        sock.send(self._build_connection_string().encode('utf-8'))
+        sock.send(self._build_connection_string())
         pty.spawn(argv, lambda fd: self._master_read(fd, sock))
 
     def _master_read(self, fd, sock):
@@ -25,7 +25,13 @@ class Client(object):
         return data
 
     def _build_connection_string(self):
-        auth = "hello %s %s\n" % (self.username, self.password)
+        auth = (
+            b'hello ' +
+            self.username.encode('utf-8') +
+            b' ' +
+            self.password.encode('utf-8') +
+            b'\n'
+        )
         size = shutil.get_terminal_size()
         metadata = self._build_metadata_string({
             "geometry": [ size.columns, size.lines ],
@@ -33,7 +39,7 @@ class Client(object):
         return auth + metadata
 
     def _build_metadata_string(self, data):
-        return '\033]499;%s\007' % json.dumps(data)
+        return b'\033]499;' + json.dumps(data).encode('utf-8') + b'\007'
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

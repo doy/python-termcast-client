@@ -1,7 +1,7 @@
 import argparse
 import json
 import os
-import pty
+import pity
 import shutil
 import socket
 import sys
@@ -17,7 +17,11 @@ class Client(object):
         sock = socket.socket()
         sock.connect((self.host, self.port))
         sock.send(self._build_connection_string())
-        pty.spawn(argv, lambda fd: self._master_read(fd, sock))
+        pity.spawn(
+            argv,
+            lambda fd: self._master_read(fd, sock),
+            handle_window_size=True
+        )
 
     def _master_read(self, fd, sock):
         data = os.read(fd, 1024)

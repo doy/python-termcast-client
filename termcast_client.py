@@ -3,6 +3,7 @@ import json
 import os
 import pity
 import shutil
+import signal
 import socket
 import sys
 
@@ -17,6 +18,7 @@ class Client(object):
         sock = socket.socket()
         sock.connect((self.host, self.port))
         sock.send(self._build_connection_string())
+        self.winch_set = False
         pity.spawn(
             argv,
             lambda fd: self._master_read(fd, sock),
@@ -24,9 +26,26 @@ class Client(object):
         )
 
     def _master_read(self, fd, sock):
+        if not self.winch_set:
+            prev_handler = signal.getsignal(signal.SIGWINCH)
+            signal.signal(
+                signal.SIGWINCH,
+                lambda signum, frame: self._winch(
+                    sock,
+                    lambda: prev_handler(signum, frame)
+                )
+            )
+            self.winch_set = True
+
         data = os.read(fd, 1024)
         sock.send(data)
         return data
+
+    def _winch(self, sock, prev_handler):
+        prev_handler()
+        # XXX a bit racy - should try to avoid splitting existing escape
+        # sequences
+        sock.send(self._build_winsize_metadata_string())
 
     def _build_connection_string(self):
         auth = (
@@ -36,11 +55,18 @@ class Client(object):
             self.password.encode('utf-8') +
             b'\n'
         )
+        metadata = self._build_connection_metadata_string()
+        return auth + metadata
+
+    def _build_connection_metadata_string(self):
+        # for now
+        return self._build_winsize_metadata_string()
+
+    def _build_winsize_metadata_string(self):
         size = shutil.get_terminal_size()
-        metadata = self._build_metadata_string({
+        return self._build_metadata_string({
             "geometry": [ size.columns, size.lines ],
         })
-        return auth + metadata
 
     def _build_metadata_string(self, data):
         return b'\033]499;' + json.dumps(data).encode('utf-8') + b'\007'

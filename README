@@ -1,0 +1,22 @@
+# termcast
+
+This module is a client for the L<http://termcast.org/> service, which allows
+broadcasting of a terminal session for remote viewing. It can be installed
+either via `pip install termcast_client` or by downloading the standalone
+binary
+[here](https://raw.githubusercontent.com/doy/python-termcast-client/master/termcast).
+
+To run it, just run `termcast`. A new shell will open, and it will start
+streaming data to the termcast server. You can view the contents by following
+the instructions at [termcast.org](http://termcast.org/).
+
+## Detailed Usage
+
+    termcast [--host <host>] [--port <port>] [--username <username>]
+             [--password <password>] [command...]
+
+* `--host` defaults to `noway.ratry.ru`
+* `--port` defaults to `31337`
+* `--username` defaults to the contents of `$USER`
+* `--password` defaults to asdf
+* the command defaults to the contents of `$SHELL`, or `/bin/sh` if not set

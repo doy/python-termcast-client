@@ -33,6 +33,10 @@ setup(
     author_email="doy@tozt.net",
     license="MIT",
     classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Environment :: Console",
+        "License :: OSI Approved :: MIT License",
+        "Topic :: Terminals :: Terminal Emulators/X Terminals",
     ],
     packages=find_packages(),
     entry_points={

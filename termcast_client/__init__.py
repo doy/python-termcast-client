@@ -1,11 +1,12 @@
 import argparse
 import json
 import os
-import pity
 import shutil
 import signal
 import socket
 import sys
+
+from . import pity
 
 class Client(object):
     def __init__(self, host, port, username, password):
@@ -71,7 +72,7 @@ class Client(object):
     def _build_metadata_string(self, data):
         return b'\033]499;' + json.dumps(data).encode('utf-8') + b'\007'
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default="noway.ratry.ru")
     parser.add_argument('--port', type=int, default=31337)

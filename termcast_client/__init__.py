@@ -20,33 +20,28 @@ class Client(object):
         sock.connect((self.host, self.port))
         sock.send(self._build_connection_string())
         self.winch_set = False
+        self.sock = sock
         pity.spawn(
             argv,
-            lambda fd: self._master_read(fd, sock),
+            self._master_read,
             handle_window_size=True
         )
 
-    def _master_read(self, fd, sock):
+    def _master_read(self, fd):
         if not self.winch_set:
-            prev_handler = signal.getsignal(signal.SIGWINCH)
-            signal.signal(
-                signal.SIGWINCH,
-                lambda signum, frame: self._winch(
-                    sock,
-                    lambda: prev_handler(signum, frame)
-                )
-            )
+            self.prev_handler = signal.getsignal(signal.SIGWINCH)
+            signal.signal(signal.SIGWINCH, self._winch)
             self.winch_set = True
 
         data = os.read(fd, 1024)
-        sock.send(data)
+        self.sock.send(data)
         return data
 
-    def _winch(self, sock, prev_handler):
-        prev_handler()
+    def _winch(self, signum, frame):
+        self.prev_handler(signum, frame)
         # XXX a bit racy - should try to avoid splitting existing escape
         # sequences
-        sock.send(self._build_winsize_metadata_string())
+        self.sock.send(self._build_winsize_metadata_string())
 
     def _build_connection_string(self):
         auth = (

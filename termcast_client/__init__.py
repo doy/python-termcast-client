@@ -1,31 +1,48 @@
 import argparse
+import hashlib
 import json
 import os
 import shutil
 import signal
 import socket
+import ssl
 import sys
 
 from . import pity
 
 class Client(object):
-    def __init__(self, host, port, username, password):
+    def __init__(self, host, port, username, password, tls, fingerprint):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
+        self.tls = tls
+        self.fingerprint = fingerprint
 
     def run(self, argv):
-        sock = socket.socket()
-        sock.connect((self.host, self.port))
-        sock.send(self._build_connection_string())
+        self.sock = socket.socket()
+        self.sock.connect((self.host, self.port))
+        if self.tls:
+            self._setup_tls()
+        self.sock.send(self._build_connection_string())
         self.winch_set = False
-        self.sock = sock
         pity.spawn(
             argv,
             self._master_read,
             handle_window_size=True
         )
+
+    def _setup_tls(self):
+        self.sock.send(b'starttls\n')
+        context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+        if self.fingerprint is not None:
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+        self.sock = context.wrap_socket(self.sock, server_hostname=self.host)
+        if self.fingerprint is not None:
+            remote = hashlib.sha1(self.sock.getpeercert(True)).hexdigest()
+            if remote != self.fingerprint:
+                raise Exception("Invalid fingerprint received: %s" % remote)
 
     def _master_read(self, fd):
         if not self.winch_set:
@@ -73,6 +90,8 @@ def main():
     parser.add_argument('--port', type=int, default=31337)
     parser.add_argument('--username', default=os.getenv("USER"))
     parser.add_argument('--password', default="asdf")
+    parser.add_argument('--tls', action='store_true')
+    parser.add_argument('--fingerprint')
     parser.add_argument(
         'command',
         nargs=argparse.REMAINDER,
@@ -85,6 +104,8 @@ def main():
         port=args.port,
         username=args.username,
         password=args.password,
+        tls=args.tls,
+        fingerprint=args.fingerprint,
     )
 
     command = args.command

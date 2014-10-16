@@ -23,7 +23,7 @@ class Client(object):
         self.sock = socket.socket()
         self.sock.connect((self.host, self.port))
         if self.tls:
-            self._setup_tls()
+            self._starttls()
         self.sock.send(self._build_connection_string())
         self.winch_set = False
         pity.spawn(
@@ -32,7 +32,7 @@ class Client(object):
             handle_window_size=True
         )
 
-    def _setup_tls(self):
+    def _starttls(self):
         self.sock.send(b'starttls\n')
         context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
         if self.fingerprint is not None:

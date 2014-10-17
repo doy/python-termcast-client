@@ -1,5 +1,8 @@
 Revision history for termcast_client
 
+0.1.2  2014-10-17
+    - Reconnect to the server when the connection drops
+
 0.1.1  2014-10-16
     - Python 2 support (Tom Ballinger)
     - Preliminary SSL support (for servers that support it). This is not yet

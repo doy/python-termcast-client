@@ -1,4 +1,10 @@
 Revision history for termcast_client
 
+0.1.1  2014-10-16
+    - Python 2 support (Tom Ballinger)
+    - Preliminary SSL support (for servers that support it). This is not yet
+      documented and may change at any point as I work out the details.
+
+
 0.1.0  2014-09-23
     - Initial revision

@@ -9,6 +9,7 @@ import ssl
 import sys
 
 from . import pity
+from . import py2compat
 
 class Client(object):
     def __init__(self, host, port, username, password, tls, fingerprint):
@@ -76,7 +77,10 @@ class Client(object):
         return self._build_winsize_metadata_string()
 
     def _build_winsize_metadata_string(self):
-        size = shutil.get_terminal_size()
+        if py2compat.py2:
+            size = py2compat.get_terminal_size()
+        else:
+            size = shutil.get_terminal_size()
         return self._build_metadata_string({
             "geometry": [ size.columns, size.lines ],
         })

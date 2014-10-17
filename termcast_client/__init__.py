@@ -44,11 +44,7 @@ class Client(object):
             print("Disconnected from server, reconnecting...")
             time.sleep(5)
             try:
-                self.sock = socket.socket()
-                self.sock.connect((self.host, self.port))
-                if self.tls:
-                    self._starttls()
-                self.sock.send(self._build_connection_string())
+                self._new_socket()
                 return
             except:
                 pass

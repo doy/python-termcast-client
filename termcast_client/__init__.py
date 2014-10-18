@@ -49,7 +49,6 @@ class Client(object):
             except:
                 pass
 
-
     def _starttls(self):
         self.sock.send(b'starttls\n')
         context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)

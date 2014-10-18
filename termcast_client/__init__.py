@@ -13,11 +13,12 @@ from . import pity
 from . import py2compat
 
 class Client(object):
-    def __init__(self, host, port, username, password, tls, fingerprint):
+    def __init__(self, host, port, username, password, timeout, tls, fingerprint):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
+        self.timeout = timeout
         self.tls = tls
         self.fingerprint = fingerprint
 
@@ -32,6 +33,7 @@ class Client(object):
 
     def _new_socket(self):
         self.sock = socket.socket()
+        self.sock.settimeout(self.timeout)
         self.sock.connect((self.host, self.port))
         if self.tls:
             self._starttls()
@@ -121,6 +123,7 @@ def main():
     parser.add_argument('--port', type=int, default=31337)
     parser.add_argument('--username', default=os.getenv("USER"))
     parser.add_argument('--password', default="asdf")
+    parser.add_argument('--timeout', default=5)
     parser.add_argument('--tls', action='store_true')
     parser.add_argument('--fingerprint')
     parser.add_argument(
@@ -135,6 +138,7 @@ def main():
         port=args.port,
         username=args.username,
         password=args.password,
+        timeout=args.timeout,
         tls=args.tls,
         fingerprint=args.fingerprint,
     )
